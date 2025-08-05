@@ -1,10 +1,7 @@
 ---
-title: Prevalence of depressive symptomatology with a focus on intersectionality
-author: Rebecca Hebert
-format: 
-  dashboard:
-    orientation: columns
-    theme: yeti
+title: "Prevalence of depressive symptomatology with a focus on intersectionality and sex specific differences"
+author: "Rebecca Hebert"
+format: html
 ---
 
 ```{r setup}
@@ -38,14 +35,15 @@ cols=brewer.pal(9,"Purples")
 
 # Variables: gender (women (W), men (M)), age (20-39, 40-59, 60+) occupation (unemployed (unemp), informal (inform), formal (form)), education (less than high school (low), high school or more (high)), current tobacco smoking (no, smokes)
 
-## 1. Intersectionality: Ocupation, Sex, Age, & Tobacco {.tabset .tabset-fade}
+## 1. Men: Ocupation, Sex, Age, & Tobacco {.tabset .tabset-fade}
 
 ### Occupation
 
 ```{r setup1, include=FALSE}
 
 # Get data 
-data <- read_excel("viz_dep_oc_data_OC.xlsx")
+data <- read_excel("viz_dep_oc_data_OC.xlsx") |> 
+  filter(startsWith(vars, "M"))
 
 # Prep data
 data = data %>% arrange(group, value)
@@ -445,7 +443,8 @@ p_load(ggplot2)
 p_load(RColorBrewer)
 cols=brewer.pal(9,"Purples") 
 
-data <- read_excel("viz_dep_ed_data_ED.xlsx")
+data <- read_excel("viz_dep_ed_data_ED.xlsx") |> 
+  filter(startsWith(vars, "F"))
 
 data = data %>% arrange(group, value)
 
