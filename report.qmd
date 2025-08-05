@@ -1,0 +1,842 @@
+---
+title: Prevalence of depressive symptomatology with a focus on intersectionality
+author: Rebecca Hebert
+format: 
+  dashboard:
+    orientation: columns
+    theme: yeti
+---
+
+```{r setup}
+#| message: false
+library(pacman)
+
+p_load(tidyverse)  
+p_load(magrittr) 
+p_load(dplyr)    
+p_load(ggplot2)
+p_load(RColorBrewer)
+p_load(viridis)
+p_load(extrafont)
+p_load(forcats)
+p_load(readxl)
+p_load(gt) # to use info_paletteer(color_pkgs = NULL)
+p_load(paletteer)
+p_load(colorBlindness) #use cvdPlot to see colors are sufficiently different
+p_load(colorspace)
+p_load(ggthemes)
+p_load(ggpubr)
+p_load(ggtext)
+p_load(gridExtra)
+p_load(patchwork)
+p_load(ggrepel)
+p_load(here)
+
+cols=brewer.pal(9,"Purples") 
+```
+
+## 1. Intersectionality: Ocupation, Sex, Age, & Tobacco {.tabset .tabset-fade}
+
+### Occupation
+
+```{r setup1, include=FALSE}
+
+# Get data 
+data <- read_excel("viz_dep_oc_data_OC.xlsx")
+
+# Prep data
+data = data %>% arrange(group, value)
+
+empty_bar <- 2
+to_add <- data.frame( matrix(NA, empty_bar*nlevels(as.factor(data$group)), 
+                             ncol(data)) )
+colnames(to_add) <- colnames(data)
+to_add$group <- rep(levels(as.factor(data$group)), each = empty_bar)
+data <- rbind(data, to_add)
+data <- data %>% arrange(group)
+data$id <- seq(1, nrow(data))
+
+label_data <- data
+number_of_bar <- nrow(label_data)
+angle <- 90 - 360 * (label_data$id-0.5) / number_of_bar     
+label_data$hjust <- ifelse( angle < -90, 1, 0)
+label_data$angle <- ifelse(angle < -90, angle + 180, angle)
+
+base_data <- data %>% 
+  group_by(group) %>% 
+  summarize(start = min(id), end = max(id) - empty_bar) %>% 
+  rowwise() %>% 
+  mutate(title = mean(c(start, end)))
+
+grid_data <- base_data
+grid_data$end <- grid_data$end[c(nrow(grid_data), 
+                                 1:nrow(grid_data)-1)] + 1
+grid_data$start <- grid_data$start - 1
+grid_data <- grid_data[-1,]
+
+```
+
+```{r cars1, echo = FALSE, fig.height = 17, fig.width = 17, warning = F}
+
+p <- ggplot(data, aes(x = as.factor(id), 
+                      y = value, 
+                      fill = group)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  geom_bar(aes(x = as.factor(id), y = value, fill = group), 
+           stat = "identity", alpha = 0.5) +
+
+  geom_segment(data=grid_data, aes(x = end, y = 49, xend = start, yend = 49), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data=grid_data, aes(x = end, y = 42, xend = start, yend = 42), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data=grid_data, aes(x = end, y = 35, xend = start, yend = 35), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data=grid_data, aes(x = end, y = 28, xend = start, yend = 28), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data=grid_data, aes(x = end, y = 21, xend = start, yend = 21), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data=grid_data, aes(x = end, y = 14, xend = start, yend = 14), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data=grid_data, aes(x = end, y = 7, xend = start, yend = 7), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +  
+  geom_segment(data=grid_data, aes(x = end, y = 0, xend = start, yend = 0), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  
+ 
+  annotate("text", x = rep(max(data$id), 8), y = c(0, 7, 14, 21, 28, 35, 42, 49), 
+           label = c("0", "7", "14", "21", "28", "35", "42", "49"), 
+           color = "black", size = 8, angle = 0, fontface = "bold", hjust = 1) + 
+  
+  
+  geom_bar(aes(x = as.factor(id), y = value, fill = group), 
+           stat = "identity", alpha = 0.5) +
+  ylim(-30, 65) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1, 4), "cm") 
+  ) +
+  coord_polar() + 
+  geom_text(data = label_data, 
+            aes(x = id, y = value + 1, label = vars, hjust = hjust), 
+            color = "black", fontface = "bold", alpha = 0.6, size = 8, angle = label_data$angle,
+            inherit.aes = FALSE )+
+  geom_segment(data = base_data, aes(x = start, y = -5, xend = end, yend = -5), 
+               colour = "black", alpha = 0.8, size = 2, inherit.aes = FALSE)  +
+  geom_text(data = base_data, aes(x = title, y = -10, label = group), 
+            hjust=c(0.7, 0.5, 0.1), 
+            colour = "black", alpha = 0.8, size = 8, fontface = "bold", 
+            inherit.aes = FALSE) +
+  
+    scale_fill_manual(values=cols[c(8,7,6)])
+
+p
+```
+
+### Sex
+
+```{r setup2, include=FALSE}
+
+rm(list=ls())
+
+#p_load(tidyverse)  
+p_load(magrittr) 
+p_load(dplyr)    
+p_load(ggplot2)
+p_load(RColorBrewer)
+cols=brewer.pal(9,"Purples")
+
+data <- read_excel("viz_dep_oc_data_SEX.xlsx")
+
+data = data %>% arrange(group, value)
+
+empty_bar <- 2
+to_add <- data.frame( matrix(NA, empty_bar*nlevels(as.factor(data$group)), ncol(data)))
+colnames(to_add) <- colnames(data)
+to_add$group <- rep(levels(as.factor(data$group)), each = empty_bar)
+data <- rbind(data, to_add)
+data <- data %>% arrange(group)
+data$id <- seq(1, nrow(data))
+
+label_data <- data
+number_of_bar <- nrow(label_data)
+angle <- 90 - 360 * (label_data$id-0.5) / number_of_bar     
+label_data$hjust <- ifelse( angle < -90, 1, 0)
+label_data$angle <- ifelse(angle < -90, angle + 180, angle)
+
+base_data <- data %>% 
+  group_by(group) %>% 
+  summarize(start = min(id), end = max(id) - empty_bar) %>% 
+  rowwise() %>% 
+  mutate(title = mean(c(start, end)))
+
+grid_data <- base_data
+grid_data$end <- grid_data$end[c(nrow(grid_data), 1:nrow(grid_data) - 1)] + 1
+grid_data$start <- grid_data$start - 1
+grid_data <- grid_data[-1, ]
+
+```
+
+```{r cars2, echo = FALSE, fig.height = 17, fig.width = 17, warning = F}
+
+p <- ggplot(data, aes(x = as.factor(id), 
+                      y = value, 
+                      fill = group)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  geom_bar(aes(x = as.factor(id), y = value, fill = group), stat = "identity", alpha = 0.5) +
+
+   geom_segment(data = grid_data, aes(x = end, y = 49, xend = start, yend = 49), 
+                colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 42, xend = start, yend = 42), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 35, xend = start, yend = 35), 
+               colour = "black", alpha=1, size=3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 28, xend = start, yend = 28), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 21, xend = start, yend = 21), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 14, xend = start, yend = 14), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 7, xend = start, yend = 7), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +  
+  geom_segment(data = grid_data, aes(x = end, y = 0, xend = start, yend = 0), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+ 
+  annotate("text", x = rep(max(data$id),8), y = c(0, 7, 14, 21, 28, 35, 42, 49), 
+           label = c("0", "7", "14", "21", "28", "35", "42", "49") , 
+           color = "black", size = 8, angle = 0, fontface = "bold", hjust = 1) +
+  
+  geom_bar(aes(x = as.factor(id), y = value, fill = group), stat = "identity", alpha = 0.5) +
+  ylim(-30, 65) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1, 4), "cm") 
+  ) +
+  coord_polar() + 
+  geom_text(data = label_data, aes(x = id, y = value+1, label = vars, hjust = hjust), 
+            color = "black", fontface = "bold", alpha = 0.6, size = 8, angle = label_data$angle,
+            inherit.aes = FALSE )+
+  geom_segment(data = base_data, aes(x = start, y = -5, xend = end, yend = -5), 
+               colour = "black", alpha = 0.8, size = 2, inherit.aes = FALSE)  +
+  geom_text(data = base_data, aes(x = title, y = -12, label = group), hjust = c(0.8, 0.3),
+            colour = "black", alpha = 0.8, size = 8, fontface = "bold", inherit.aes = FALSE) +
+  
+  scale_fill_manual(values = cols[c(6, 6)])
+
+p
+```
+
+### Age
+
+```{r setup3, include=FALSE}
+
+rm(list = ls())
+
+p_load(tidyverse)  
+p_load(magrittr) 
+p_load(dplyr)    
+p_load(ggplot2)
+p_load(RColorBrewer)
+cols = brewer.pal(9,"Purples")
+
+data <- read_excel("viz_dep_oc_data_ED.xlsx")
+
+data = data %>% arrange(group, value)
+
+empty_bar <- 2
+to_add <- data.frame( matrix(NA, empty_bar*nlevels(as.factor(data$group)), ncol(data)) )
+colnames(to_add) <- colnames(data)
+to_add$group <- rep(levels(as.factor(data$group)), 
+                    each = empty_bar)
+data <- rbind(data, to_add)
+data <- data %>% arrange(group)
+data$id <- seq(1, nrow(data))
+
+label_data <- data
+number_of_bar <- nrow(label_data)
+angle <- 90 - 360 * (label_data$id - 0.5) / number_of_bar     
+label_data$hjust <- ifelse( angle < -90, 1, 0)
+label_data$angle <- ifelse(angle < -90, angle + 180, angle)
+
+base_data <- data %>% 
+  group_by(group) %>% 
+  summarize(start = min(id), end = max(id) - empty_bar) %>% 
+  rowwise() %>% 
+  mutate(title = mean(c(start, end)))
+
+grid_data <- base_data
+grid_data$end <- grid_data$end[c(nrow(grid_data), 1:nrow(grid_data) - 1)] + 1
+grid_data$start <- grid_data$start - 1
+grid_data <- grid_data[-1, ]
+```
+
+```{r cars3, echo = FALSE, fig.height = 17, fig.width = 17, warning = F}
+
+p <- ggplot(data, aes(x = as.factor(id), y = value, fill = group)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  geom_bar(aes(x = as.factor(id), y = value, fill = group), stat = "identity", alpha = 0.5) +
+
+  geom_segment(data = grid_data, aes(x = end, y = 49, xend = start, yend = 49), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 42, xend = start, yend = 42), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 35, xend = start, yend = 35), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 28, xend = start, yend = 28), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 21, xend = start, yend = 21), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 14, xend = start, yend = 14), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 7, xend = start, yend = 7), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +  
+  geom_segment(data = grid_data, aes(x = end, y = 0, xend = start, yend = 0), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+ 
+  annotate("text", x = rep(max(data$id),8), y = c(0, 7, 14, 21, 28, 35, 42, 49), 
+           label = c("0", "7", "14", "21", "28", "35", "42", "49") , 
+           color = "black", size = 8, angle = 0, fontface = "bold", hjust = 1) + 
+  
+  geom_bar(aes(x = as.factor(id), y = value, fill = group), stat = "identity", alpha = 0.5) +
+  ylim(-30, 65) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1, 4), "cm") 
+  ) +
+  coord_polar() + 
+  geom_text(data = label_data, aes(x = id, y = value+1, label = vars, hjust = hjust), 
+            color = "black", fontface = "bold", alpha = 0.6, size = 8, 
+            angle = label_data$angle, inherit.aes = FALSE) +
+  geom_segment(data = base_data, aes(x = start, y = -5, xend = end, yend = -5), 
+               colour = "black", alpha = 0.8, size = 2, inherit.aes = FALSE)  +
+  geom_text(data = base_data, aes(x = title, y = -11, label = group), 
+            hjust = c(0.9, 0.6, 0.1), colour = "black", alpha = 0.8, size = 8, 
+            fontface = "bold", inherit.aes = FALSE) +
+  
+  scale_fill_manual(values = cols[c(6, 7, 8)])
+
+p
+```
+
+### Smoking
+
+```{r setup4, include=FALSE}
+
+rm(list = ls())
+
+p_load(tidyverse)  
+p_load(magrittr) 
+p_load(dplyr)    
+p_load(ggplot2)
+p_load(RColorBrewer)
+cols = brewer.pal(9,"Purples")
+data <- read_excel("viz_dep_oc_data_SMOKE.xlsx")
+
+
+
+data = data %>% arrange(group, value)
+
+empty_bar <- 2
+to_add <- data.frame( matrix(NA, empty_bar*nlevels(as.factor(data$group)), ncol(data)) )
+colnames(to_add) <- colnames(data)
+to_add$group <- rep(levels(as.factor(data$group)), each = empty_bar)
+data <- rbind(data, to_add)
+data <- data %>% arrange(group)
+data$id <- seq(1, nrow(data))
+
+label_data <- data
+number_of_bar <- nrow(label_data)
+angle <- 90 - 360 * (label_data$id-0.5) / number_of_bar     
+label_data$hjust <- ifelse( angle < -90, 1, 0)
+label_data$angle <- ifelse(angle < -90, angle + 180, angle)
+
+base_data <- data %>% 
+  group_by(group) %>% 
+  summarize(start = min(id), end = max(id) - empty_bar) %>% 
+  rowwise() %>% 
+  mutate(title = mean(c(start, end)))
+
+grid_data <- base_data
+grid_data$end <- grid_data$end[c(nrow(grid_data), 1:nrow(grid_data) - 1)] + 1
+grid_data$start <- grid_data$start - 1
+grid_data <- grid_data[-1, ]
+```
+
+```{r cars4, echo=FALSE, fig.height = 17, fig.width = 17, warning=F}
+
+p <- ggplot(data, aes(x = as.factor(id), 
+                      y = value, 
+                      fill = group)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  geom_bar(aes(x = as.factor(id), y = value, fill = group), 
+           stat = "identity", alpha = 0.5) +
+
+  geom_segment(data = grid_data, aes(x = end, y = 49, xend = start, yend = 49), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 42, xend = start, yend = 42), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 35, xend = start, yend = 35), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 28, xend = start, yend = 28), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 21, xend = start, yend = 21), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 14, xend = start, yend = 14), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 7, xend = start, yend = 7), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +  
+  geom_segment(data = grid_data, aes(x = end, y = 0, xend = start, yend = 0), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  
+ 
+  annotate("text", x = rep(max(data$id),8), y = c(0, 7, 14, 21, 28, 35, 42, 49), 
+           label = c("0", "7", "14", "21", "28", "35", "42", "49") , 
+           color = "black", size = 8, angle = 0, fontface = "bold", hjust = 1) + 
+  
+  geom_bar(aes(x = as.factor(id), y = value, fill = group),
+           stat = "identity", alpha = 0.5) +
+  ylim(-30, 65) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1, 4), "cm") 
+  ) +
+  coord_polar() + 
+  geom_text(data = label_data, 
+            aes(x = id, y = value+1, label = vars, hjust = hjust), 
+            color = "black", fontface = "bold", alpha = 0.6, size = 8, 
+            angle = label_data$angle, inherit.aes = FALSE )+
+  geom_segment(data = base_data, aes(x = start, y = -5, xend = end, yend = -5),           
+               colour = "black", alpha = 0.8, size = 2, inherit.aes = FALSE) +
+  geom_text(data = base_data, aes(x = title, y = -11, label = group), 
+            hjust = c(0.8, 0.1), colour = "black", alpha = 0.8, size = 8, 
+            fontface = "bold", inherit.aes = FALSE) +
+  
+  scale_fill_manual(values = cols[c(6, 8)])
+
+p
+```
+
+## **2. Intersectionality: Education, Sex, Age, & Tobacco** {.tabset .tabset-fade}
+
+### Education
+
+```{r setup5, include=FALSE}
+
+rm(list = ls())
+
+p_load(tidyverse)  
+p_load(magrittr) 
+p_load(dplyr)    
+p_load(ggplot2)
+p_load(RColorBrewer)
+cols=brewer.pal(9,"Purples") 
+
+data <- read_excel("viz_dep_ed_data_ED.xlsx")
+
+data = data %>% arrange(group, value)
+
+empty_bar <- 2
+to_add <- data.frame(matrix(NA, empty_bar*nlevels(as.factor(data$group)), ncol(data)) )
+colnames(to_add) <- colnames(data)
+to_add$group <- rep(levels(as.factor(data$group)), 
+                    each = empty_bar)
+data <- rbind(data, to_add)
+data <- data %>% arrange(group)
+data$id <- seq(1, nrow(data))
+
+label_data <- data
+number_of_bar <- nrow(label_data)
+angle <- 90 - 360 * (label_data$id - 0.5) / number_of_bar     
+label_data$hjust <- ifelse( angle < -90, 1, 0)
+label_data$angle <- ifelse(angle < -90, angle + 180, angle)
+
+base_data <- data %>% 
+  group_by(group) %>% 
+  summarize(start = min(id), end = max(id) - empty_bar) %>% 
+  rowwise() %>% 
+  mutate(title = mean(c(start, end)))
+
+grid_data <- base_data
+grid_data$end <- grid_data$end[c(nrow(grid_data), 1:nrow(grid_data) - 1)] + 1
+grid_data$start <- grid_data$start - 1
+grid_data <- grid_data[-1, ]
+```
+
+```{r cars5, echo=FALSE, fig.height = 17, fig.width = 17, warning=F}
+
+p <- ggplot(data, aes(x = as.factor(id), 
+                      y = value, 
+                      fill = group)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  geom_bar(aes(x = as.factor(id), y = value, fill = group), 
+           stat = "identity", alpha = 0.5) +
+
+  geom_segment(data = grid_data, aes(x = end, y = 56, xend = start, yend = 56), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 48, xend = start, yend = 48), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 40, xend = start, yend = 40), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 32, xend = start, yend = 32), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 24, xend = start, yend = 24), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 16, xend = start, yend = 16), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 8, xend = start, yend = 8), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +  
+  geom_segment(data = grid_data, aes(x = end, y = 0, xend = start, yend = 0), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+ 
+  annotate("text", x = rep(max(data$id),8), y = c(0, 8, 16, 24, 32, 40, 48, 56), 
+           label = c("0", "8", "16", "24", "32", "40", "48", "56") , 
+           color = "black", size = 8, angle = 0, fontface = "bold", hjust = 1) + 
+  
+  geom_bar(aes(x = as.factor(id), y = value, fill = group), 
+           stat = "identity", alpha = 0.5) +
+  ylim(-30, 65) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1, 4), "cm") 
+  ) +
+  coord_polar() + 
+  geom_text(data = label_data, 
+            aes(x = id, y = value + 1, label = vars, hjust = hjust), 
+            color = "black", fontface = "bold", alpha = 0.6, size = 8, 
+            angle = label_data$angle, inherit.aes = FALSE )+
+  geom_segment(data = base_data, aes(x = start, y = -5, xend = end, yend = -5), 
+               colour = "black", alpha = 0.8, size = 2, inherit.aes = FALSE)  +
+  geom_text(data = base_data, aes(x = title, y = -10, label = group), 
+            hjust = c(0.8, 0.2), colour = "black", alpha = 0.8, size = 8, 
+            fontface = "bold", inherit.aes = FALSE) +
+  
+  scale_fill_manual(values = cols[c(6, 8)])
+
+p
+```
+### Sex
+```{r setup6, include=FALSE}
+
+rm(list = ls())
+
+p_load(tidyverse)  
+p_load(magrittr) 
+p_load(dplyr)    
+p_load(ggplot2)
+p_load(RColorBrewer)
+cols=brewer.pal(9,"Purples")
+
+data <- read_excel("viz_dep_ed_data_SEX.xlsx")
+
+data = data %>% arrange(group, value)
+
+empty_bar <- 2
+to_add <- data.frame( matrix(NA, empty_bar*nlevels(as.factor(data$group)), 
+                             ncol(data)))
+colnames(to_add) <- colnames(data)
+to_add$group <- rep(levels(as.factor(data$group)), 
+                    each = empty_bar)
+data <- rbind(data, to_add)
+data <- data %>% arrange(group)
+data$id <- seq(1, nrow(data))
+
+label_data <- data
+number_of_bar <- nrow(label_data)
+angle <- 90 - 360 * (label_data$id - 0.5) / number_of_bar     
+label_data$hjust <- ifelse( angle < -90, 1, 0)
+label_data$angle <- ifelse(angle < -90, angle + 180, angle)
+
+base_data <- data %>% 
+  group_by(group) %>% 
+  summarize(start = min(id), end = max(id) - empty_bar) %>% 
+  rowwise() %>% 
+  mutate(title = mean(c(start, end)))
+
+grid_data <- base_data
+grid_data$end <- grid_data$end[c(nrow(grid_data), 1:nrow(grid_data) - 1)] + 1
+grid_data$start <- grid_data$start - 1
+grid_data <- grid_data[-1, ]
+```
+
+```{r cars6, echo=FALSE, fig.height = 17, fig.width = 17, warning = F}
+
+p <- ggplot(data, aes(x = as.factor(id), 
+                      y = value, 
+                      fill = group)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  geom_bar(aes(x = as.factor(id), 
+               y = value, 
+               fill = group),
+           stat = "identity", alpha = 0.5) +
+
+  geom_segment(data = grid_data, aes(x = end, y = 49, xend = start, yend = 49), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 42, xend = start, yend = 42), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 35, xend = start, yend = 35), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 28, xend = start, yend = 28), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 21, xend = start, yend = 21), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 14, xend = start, yend = 14), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +
+  geom_segment(data = grid_data, aes(x = end, y = 7, xend = start, yend = 7), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +  
+  geom_segment(data = grid_data, aes(x = end, y = 0, xend = start, yend = 0), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +
+ 
+  annotate("text", x = rep(max(data$id),8), y = c(0, 7, 14, 21, 28, 35, 42, 49), 
+           label = c("0", "7", "14", "21", "28", "35", "42", "49"), 
+           color = "black", size = 8, angle = 0, fontface = "bold", hjust = 1) +
+  
+  geom_bar(aes(x = as.factor(id), y = value, fill = group), 
+           stat = "identity", alpha = 0.5) +
+  ylim(-30, 65) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1, 4), "cm") 
+  ) +
+  coord_polar() + 
+  geom_text(data = label_data, 
+            aes(x = id, y = value + 1, label = vars, hjust = hjust), 
+            color="black", fontface = "bold", alpha = 0.6, size = 8, 
+            angle = label_data$angle, inherit.aes = FALSE)+
+  geom_segment(data = base_data, aes(x = start, y = -5, xend = end, yend = -5), 
+               colour = "black", alpha = 0.8, size = 2, inherit.aes = FALSE)  +
+  geom_text(data = base_data, aes(x = title, y = -12, label = group), 
+            hjust = c(0.8, 0.3), colour = "black", alpha = 0.8, size = 8, 
+            fontface = "bold", inherit.aes = FALSE) +
+  
+  scale_fill_manual(values = cols[c(6, 6)])
+
+p
+```
+### Age
+```{r setup7, include=FALSE}
+
+rm(list = ls())
+
+p_load(tidyverse)  
+p_load(magrittr) 
+p_load(dplyr)    
+p_load(ggplot2)
+p_load(RColorBrewer)
+cols = brewer.pal(9,"Purples")
+
+data <- read_excel("viz_dep_ed_data_EDAD.xlsx")
+
+data = data %>% arrange(group, value)
+
+empty_bar <- 2
+to_add <- data.frame( matrix(NA, empty_bar*nlevels(as.factor(data$group)), ncol(data)))
+colnames(to_add) <- colnames(data)
+to_add$group <- rep(levels(as.factor(data$group)), 
+                    each = empty_bar)
+data <- rbind(data, to_add)
+data <- data %>% arrange(group)
+data$id <- seq(1, nrow(data))
+
+label_data <- data
+number_of_bar <- nrow(label_data)
+angle <- 90 - 360 * (label_data$id - 0.5) / number_of_bar     
+label_data$hjust <- ifelse( angle < -90, 1, 0)
+label_data$angle <- ifelse(angle < -90, angle + 180, angle)
+
+base_data <- data %>% 
+  group_by(group) %>% 
+  summarize(start = min(id), end = max(id) - empty_bar) %>% 
+  rowwise() %>% 
+  mutate(title = mean(c(start, end)))
+
+grid_data <- base_data
+grid_data$end <- grid_data$end[c(nrow(grid_data), 1:nrow(grid_data) - 1)] + 1
+grid_data$start <- grid_data$start - 1
+grid_data <- grid_data[-1, ]
+```
+
+```{r cars7, echo=FALSE, fig.height = 17, fig.width = 17, warning = F}
+
+p <- ggplot(data, aes(x = as.factor(id), 
+                      y = value, 
+                      fill = group)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  geom_bar(aes(x = as.factor(id), y = value, fill = group), 
+           stat = "identity", alpha = 0.5) +
+
+  geom_segment(data = grid_data, aes(x = end, y = 49, xend = start, yend = 49), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 42, xend = start, yend = 42), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 35, xend = start, yend = 35), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 28, xend = start, yend = 28), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 21, xend = start, yend = 21), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 14, xend = start, yend = 14), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 7, xend = start, yend = 7), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +  
+  geom_segment(data = grid_data, aes(x = end, y = 0, xend = start, yend = 0), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE) +
+ 
+  annotate("text", x = rep(max(data$id),8), y = c(0, 7, 14, 21, 28, 35, 42, 49), 
+           label = c("0", "7", "14", "21", "28", "35", "42", "49"), 
+           color = "black", size = 8, angle = 0, fontface = "bold", hjust = 1)  + 
+  
+  geom_bar(aes(x = as.factor(id), 
+               y = value, 
+               fill = group), 
+           stat = "identity", 
+           alpha = 0.5) +
+  ylim(-30, 65) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1, 4), "cm") 
+  ) +
+  coord_polar() + 
+  geom_text(data = label_data, 
+            aes(x = id, y = value + 1, label = vars, hjust = hjust), 
+            color = "black", fontface = "bold", alpha = 0.6, size = 8, 
+            angle = label_data$angle, inherit.aes = FALSE )+
+  geom_segment(data = base_data, aes(x = start, y = -5, xend = end, yend = -5), 
+               colour = "black", alpha = 0.8, size = 2, inherit.aes = FALSE)  +
+  geom_text(data = base_data, aes(x = title, y = -11, label = group), 
+            hjust = c(0.9, 0.6, 0.1), colour = "black", alpha = 0.8, size = 8, 
+            fontface = "bold", inherit.aes = FALSE) +
+  
+  scale_fill_manual(values = cols[c(6, 7, 8)])
+
+p
+```
+
+### Smoking
+
+```{r setup8, include=FALSE}
+
+rm(list = ls())
+
+p_load(tidyverse)  
+p_load(magrittr) 
+p_load(dplyr)    
+p_load(ggplot2)
+p_load(RColorBrewer)
+cols = brewer.pal(9,"Purples")
+
+data <- read_excel("viz_dep_ed_data_SMOKE.xlsx")
+
+data = data %>% arrange(group, value)
+
+empty_bar <- 2
+to_add <- data.frame( matrix(NA, empty_bar*nlevels(as.factor(data$group)), 
+                             ncol(data)) )
+colnames(to_add) <- colnames(data)
+to_add$group <- rep(levels(as.factor(data$group)), 
+                    each = empty_bar)
+data <- rbind(data, to_add)
+data <- data %>% arrange(group)
+data$id <- seq(1, nrow(data))
+
+label_data <- data
+number_of_bar <- nrow(label_data)
+angle <- 90 - 360 * (label_data$id - 0.5) / number_of_bar     
+label_data$hjust <- ifelse( angle < -90, 1, 0)
+label_data$angle <- ifelse(angle < -90, angle + 180, angle)
+
+base_data <- data %>% 
+  group_by(group) %>% 
+  summarize(start = min(id), end = max(id) - empty_bar) %>% 
+  rowwise() %>% 
+  mutate(title = mean(c(start, end)))
+ 
+grid_data <- base_data
+grid_data$end <- grid_data$end[ c( nrow(grid_data), 1:nrow(grid_data) - 1)] + 1
+grid_data$start <- grid_data$start - 1
+grid_data <- grid_data[-1, ]
+
+```
+
+```{r cars8, echo=FALSE, fig.height = 17, fig.width = 17, warning=F}
+
+p <- ggplot(data, aes(x = as.factor(id), 
+                      y = value, 
+                      fill = group)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  geom_bar(aes(x = as.factor(id), y = value, fill = group), 
+           stat = "identity", alpha = 0.5) +
+
+  geom_segment(data = grid_data, aes(x = end, y = 49, xend = start, yend = 49), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 42, xend = start, yend = 42), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 35, xend = start, yend = 35), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 28, xend = start, yend = 28), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 21, xend = start, yend = 21), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 14, xend = start, yend = 14), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data = grid_data, aes(x = end, y = 7, xend = start, yend = 7), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +  
+  geom_segment(data = grid_data, aes(x = end, y = 0, xend = start, yend = 0), 
+               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE) +
+ 
+  annotate("text", x = rep(max(data$id), 8), 
+           y = c(0, 7, 14, 21, 28, 35, 42, 49), 
+           label = c("0", "7", "14", "21", "28", "35", "42", "49"), 
+           color="black", size = 8, angle = 0, fontface = "bold", hjust = 1) + 
+  
+  geom_bar(aes(x = as.factor(id), y = value, fill = group), stat = "identity", 
+           alpha = 0.5) +
+  ylim(-30, 65) + 
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1, 4), "cm") 
+  ) +
+  coord_polar() + 
+  geom_text(data = label_data, 
+            aes(x = id, y = value + 1, label = vars, hjust = hjust), 
+            color = "black", fontface = "bold", alpha = 0.6, size = 8, 
+            angle = label_data$angle, inherit.aes = FALSE) +
+  geom_segment(data = base_data, aes(x = start, y = -5, xend = end, yend = -5), 
+               colour = "black", alpha = 0.8, size = 2, inherit.aes = FALSE)  +
+  geom_text(data = base_data, aes(x = title, y = -11, label = group), 
+            hjust = c(0.8, 0.1), colour = "black", alpha = 0.8, size = 8, 
+            fontface = "bold", inherit.aes = FALSE) +
+  
+  scale_fill_manual(values = cols[c(6, 8)])
+
+p
+```
+
+```{r connect, include=FALSE}
+# p_load(rsconnect)
+# 
+# rsconnect::writeManifest()
+```
+
