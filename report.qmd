@@ -36,9 +36,9 @@ p_load(here)
 cols=brewer.pal(9,"Purples") 
 ```
 
-# Variables: gender (women (W), men (M)), age (20-39, 40-59, 60+) occupation (unemployed (unemp), informal (inform), formal (form)), education (less than high school (low), high school or more (high)), current tobacco smoking (no, smokes)
+# Variables: occupation (unemployed (unemp), informal (inform), formal (form)), education (less than high school (low), high school or more (high)), gender (women (W), men (M)), age (20-39, 40-59, 60+), smoking (does not currently smoke tobacco (no), currently smokes tobacco (smokes))
 
-## 1. Intersectionality: Ocupation, Sex, Age, & Tobacco {.tabset .tabset-fade}
+## 1. Intersectionality: Ocupation, Gender, Age, & Tobacco {.tabset .tabset-fade}
 
 ### Occupation
 
@@ -138,7 +138,7 @@ p <- ggplot(data, aes(x = as.factor(id),
 p
 ```
 
-### Sex
+### Gender
 
 ```{r setup2, include=FALSE}
 
@@ -430,7 +430,7 @@ p <- ggplot(data, aes(x = as.factor(id),
 p
 ```
 
-## **2. Intersectionality: Education, Sex, Age, & Tobacco** {.tabset .tabset-fade}
+## **2. Intersectionality: Education, Gender, Age, & Tobacco** {.tabset .tabset-fade}
 
 ### Education
 
@@ -484,25 +484,26 @@ p <- ggplot(data, aes(x = as.factor(id),
   geom_bar(aes(x = as.factor(id), y = value, fill = group), 
            stat = "identity", alpha = 0.5) +
 
-  geom_segment(data = grid_data, aes(x = end, y = 56, xend = start, yend = 56), 
-               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
-  geom_segment(data = grid_data, aes(x = end, y = 48, xend = start, yend = 48), 
-               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
-  geom_segment(data = grid_data, aes(x = end, y = 40, xend = start, yend = 40), 
-               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
-  geom_segment(data = grid_data, aes(x = end, y = 32, xend = start, yend = 32), 
-               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
-  geom_segment(data = grid_data, aes(x = end, y = 24, xend = start, yend = 24), 
-               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +
-  geom_segment(data = grid_data, aes(x = end, y = 16, xend = start, yend = 16), 
-               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
-  geom_segment(data = grid_data, aes(x = end, y = 8, xend = start, yend = 8), 
-               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE ) +  
-  geom_segment(data = grid_data, aes(x = end, y = 0, xend = start, yend = 0), 
-               colour = "black", alpha = 1, size = 3 , inherit.aes = FALSE ) +
+  geom_segment(data=grid_data, aes(x = end, y = 49, xend = start, yend = 49), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data=grid_data, aes(x = end, y = 42, xend = start, yend = 42), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data=grid_data, aes(x = end, y = 35, xend = start, yend = 35), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data=grid_data, aes(x = end, y = 28, xend = start, yend = 28), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data=grid_data, aes(x = end, y = 21, xend = start, yend = 21), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data=grid_data, aes(x = end, y = 14, xend = start, yend = 14), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  geom_segment(data=grid_data, aes(x = end, y = 7, xend = start, yend = 7), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +  
+  geom_segment(data=grid_data, aes(x = end, y = 0, xend = start, yend = 0), 
+               colour = "black", alpha = 1, size = 3, inherit.aes = FALSE) +
+  
  
-  annotate("text", x = rep(max(data$id),8), y = c(0, 8, 16, 24, 32, 40, 48, 56), 
-           label = c("0", "8", "16", "24", "32", "40", "48", "56") , 
+  annotate("text", x = rep(max(data$id), 8), y = c(0, 7, 14, 21, 28, 35, 42, 49), 
+           label = c("0", "7", "14", "21", "28", "35", "42", "49"), 
            color = "black", size = 8, angle = 0, fontface = "bold", hjust = 1) + 
   
   geom_bar(aes(x = as.factor(id), y = value, fill = group), 
@@ -531,7 +532,7 @@ p <- ggplot(data, aes(x = as.factor(id),
 
 p
 ```
-### Sex
+### Gender
 ```{r setup6, include=FALSE}
 
 rm(list = ls())

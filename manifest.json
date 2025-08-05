@@ -4866,7 +4866,7 @@
       "checksum": "eda8442b2335800bf592f9e77ae85413"
     },
     "report_files/figure-html/cars5-1.png": {
-      "checksum": "e989da00f279417edb3de66b1b5da459"
+      "checksum": "11c0057e597b7d6746624744f2ee72bc"
     },
     "report_files/figure-html/cars6-1.png": {
       "checksum": "bd0c8d3a52e9a384c89a45da9ee11beb"
@@ -4875,7 +4875,7 @@
       "checksum": "22b5166fa31ad0133fc812a054edfdf7"
     },
     "report_files/figure-html/cars8-1.png": {
-      "checksum": "eda8442b2335800bf592f9e77ae85413"
+      "checksum": "2268c3081c9aec099d3e666620b13913"
     },
     "report_files/libs/bootstrap/bootstrap-4ccae0f7f6ab16c87125bd683e9a5596.min.css": {
       "checksum": "4ccae0f7f6ab16c87125bd683e9a5596"
@@ -5052,10 +5052,10 @@
       "checksum": "d061ef26b96b2c386deeb1c331bd2c6e"
     },
     "report.html": {
-      "checksum": "a059b8dd3df607f948e41e7a18e5fbd0"
+      "checksum": "620eda29b239c3d8bfa157baf42da4c5"
     },
     "report.qmd": {
-      "checksum": "44935e0831cb4fe3774d93c694ea4024"
+      "checksum": "903079463b843dc6dacc5df076e1d8f3"
     },
     "viz_dep_ed_data_ED.xlsx": {
       "checksum": "778edf12c82fea079b404acfd502cf98"
@@ -5067,7 +5067,7 @@
       "checksum": "8e61d1329daeb658670ea8ac865442cf"
     },
     "viz_dep_ed_data_SMOKE.xlsx": {
-      "checksum": "4d1894f3f847f23a8df7b15bc8c1c3dc"
+      "checksum": "879fbd8df686ec25ebcbfe6b89e345b8"
     },
     "viz_dep_oc_data_ED.xlsx": {
       "checksum": "0d71d62224e41ea5df06243900127fa9"
